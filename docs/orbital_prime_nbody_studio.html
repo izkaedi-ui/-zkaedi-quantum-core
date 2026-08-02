@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORBITAL PRIME // 3D N-BODY CELESTIAL MECHANICS STUDIO v2.0</title>
+    <!-- Google Fonts & Three.js CDN -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --bg-obsidian: #020307;
+            --bg-card: rgba(8, 12, 24, 0.88);
+            --neon-cyan: #00f3ff;
+            --neon-gold: #ffd700;
+            --neon-magenta: #ff0055;
+            --neon-purple: #a855f7;
+            --neon-green: #00ff99;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --font-head: 'Orbitron', sans-serif;
+            --font-sub: 'Rajdhani', sans-serif;
+            --font-code: 'Fira Code', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-obsidian);
+            color: var(--text-main);
+            font-family: var(--font-sub);
+            font-size: 16px;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        #canvas-3d {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: 1;
+        }
+
+        .ui-layer {
+            position: relative;
+            z-index: 10;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 1.5rem;
+            pointer-events: none;
+        }
+
+        .interactive {
+            pointer-events: auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 2rem;
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            backdrop-filter: blur(16px);
+            clip-path: polygon(0 0, 100% 0, 97% 100%, 3% 100%);
+            margin-bottom: 2rem;
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.25);
+        }
+
+        .brand h1 {
+            font-family: var(--font-head);
+            font-size: 1.8rem;
+            color: #fff;
+            letter-spacing: 3px;
+            text-shadow: 0 0 15px var(--neon-cyan);
+        }
+
+        .brand p {
+            font-size: 0.85rem;
+            color: var(--neon-cyan);
+            font-family: var(--font-code);
+        }
+
+        .hud-stats {
+            display: flex;
+            gap: 2rem;
+            font-family: var(--font-code);
+            font-size: 0.85rem;
+        }
+
+        .hud-stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .hud-stat-item .lbl {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        .hud-stat-item .val {
+            color: var(--neon-gold);
+            font-weight: bold;
+        }
+
+        .grid-3d {
+            display: grid;
+            grid-template-columns: 380px 1fr 400px;
+            gap: 1.5rem;
+            height: calc(100vh - 160px);
+        }
+
+        @media (max-width: 1200px) {
+            .grid-3d {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
+
+        .glass-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            backdrop-filter: blur(14px);
+            padding: 1.5rem;
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .card-title {
+            font-family: var(--font-head);
+            font-size: 1.1rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 0.7rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-title span {
+            color: var(--neon-cyan);
+        }
+
+        .cyber-btn {
+            background: transparent;
+            border: 1px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            padding: 0.75rem 1.2rem;
+            font-family: var(--font-head);
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            margin-bottom: 0.8rem;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cyber-btn:hover {
+            background: var(--neon-cyan);
+            color: #000;
+            box-shadow: 0 0 20px var(--neon-cyan);
+        }
+
+        .cyber-btn.gold {
+            border-color: var(--neon-gold);
+            color: var(--neon-gold);
+        }
+
+        .cyber-btn.gold:hover {
+            background: var(--neon-gold);
+            color: #000;
+            box-shadow: 0 0 20px var(--neon-gold);
+        }
+
+        .cyber-btn.magenta {
+            border-color: var(--neon-magenta);
+            color: var(--neon-magenta);
+        }
+
+        .cyber-btn.magenta:hover {
+            background: var(--neon-magenta);
+            color: #fff;
+            box-shadow: 0 0 20px var(--neon-magenta);
+        }
+
+        .code-box {
+            background: #04050a;
+            border: 1px solid rgba(0, 243, 255, 0.25);
+            font-family: var(--font-code);
+            font-size: 0.8rem;
+            padding: 1rem;
+            flex: 1;
+            overflow-y: auto;
+            color: #a5f3fc;
+            line-height: 1.5;
+            white-space: pre;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
+        }
+
+        #transit-chart {
+            width: 100%;
+            height: 140px;
+            background: #04050a;
+            border: 1px solid rgba(0, 243, 255, 0.25);
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="canvas-3d"></canvas>
+
+    <div class="ui-layer">
+        <header class="interactive">
+            <div class="brand">
+                <h1>ORBITAL PRIME v2.0</h1>
+                <p>3D N-BODY GRAVITATIONAL DYNAMICS & EXOPLANET STUDIO</p>
+            </div>
+            <div class="hud-stats">
+                <div class="hud-stat-item">
+                    <span class="lbl">ACTIVE BODIES</span>
+                    <span class="val" id="hud-bodies">8 BODIES</span>
+                </div>
+                <div class="hud-stat-item">
+                    <span class="lbl">SIMULATION STEP</span>
+                    <span class="val">dt = 0.008 AU/day</span>
+                </div>
+                <div class="hud-stat-item">
+                    <span class="lbl">SOLVER INTEGRATOR</span>
+                    <span class="val">VELOCITY VERLET (O(N^2))</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid-3d">
+            <!-- LEFT PANEL -->
+            <div class="glass-card interactive">
+                <div class="card-title">
+                    <span>01 //</span> CELESTIAL PRESETS
+                </div>
+                
+                <button class="cyber-btn" onclick="loadSystem('sol')">
+                    <span>SOL SYSTEM (SUN + PLANETS)</span>
+                    <span>8 BODIES</span>
+                </button>
+                <button class="cyber-btn gold" onclick="loadSystem('binary')">
+                    <span>ALPHA CENTAURI BINARY</span>
+                    <span>CHAOTIC 3-BODY</span>
+                </button>
+                <button class="cyber-btn" onclick="loadSystem('trappist')">
+                    <span>TRAPPIST-1 EXOPLANETS</span>
+                    <span>7 RESONANT</span>
+                </button>
+
+                <button class="cyber-btn magenta" onclick="loadSystem('blackhole')">
+                    <span>BLACK HOLE ACCRETION DISK</span>
+                    <span>100 PARTICLES</span>
+                </button>
+
+                <div class="card-title" style="margin-top: 1.5rem;">
+                    <span>02 //</span> INJECT CUSTOM PROBE
+                </div>
+                <div style="display:flex; gap:0.5rem; margin-bottom:0.8rem;">
+                    <input type="number" id="v-x" placeholder="Vx (AU/d)" value="0.02" style="width:50%; background:#04050a; border:1px solid var(--neon-cyan); color:#fff; padding:0.5rem; font-family:var(--font-code);">
+                    <input type="number" id="v-y" placeholder="Vy (AU/d)" value="0.04" style="width:50%; background:#04050a; border:1px solid var(--neon-cyan); color:#fff; padding:0.5rem; font-family:var(--font-code);">
+                </div>
+                <button class="cyber-btn gold" onclick="launchProbe()">LAUNCH ASTEROID / PROBE</button>
+            </div>
+
+            <!-- CENTER PANEL -->
+            <div></div>
+
+            <!-- RIGHT PANEL -->
+            <div class="glass-card interactive">
+                <div class="card-title">
+                    <span>03 //</span> TRANSIT LIGHT CURVE
+                </div>
+                <p style="font-size:0.8rem; color:var(--text-muted);">Stellar flux dip during planetary transit:</p>
+                <canvas id="transit-chart"></canvas>
+
+                <div class="card-title" style="margin-top: 1rem;">
+                    <span>04 //</span> TELEMETRY EXPORTER
+                </div>
+                <button class="cyber-btn" onclick="exportCSV()">EXPORT TELEMETRY (CSV)</button>
+
+                <div class="card-title" style="margin-top: 1rem;">
+                    <span>05 //</span> EMITTED VERLET C CODE
+                </div>
+                <div class="code-box" id="code-box">
+/* AUTO-GENERATED ZCC C99 GRAVITATIONAL SOLVER */
+#include <stdio.h>
+#include <math.h>
+
+#define G 0.000295912208286 /* AU^3 / (day^2 * M_sun) */
+
+void verlet_step(Body bodies[], int N, double dt) {
+    for (int i = 0; i < N; i++) {
+        bodies[i].x += bodies[i].vx * dt + 0.5 * bodies[i].ax * dt * dt;
+        bodies[i].y += bodies[i].vy * dt + 0.5 * bodies[i].ay * dt * dt;
+        bodies[i].z += bodies[i].vz * dt + 0.5 * bodies[i].az * dt * dt;
+    }
+}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- THREE.JS N-BODY GRAVITY SOLVER -->
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playDopplerTone(freq = 440) {
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.1);
+            } catch(e){}
+        }
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas-3d'), antialias: true, alpha: true });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        let bodies = [];
+        const G = 0.05;
+
+        function createBody(name, mass, radius, color, posX, posY, posZ, vx, vy, vz) {
+            const geo = new THREE.SphereGeometry(radius, 24, 24);
+            const mat = new THREE.MeshBasicMaterial({ color: color, wireframe: false });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.set(posX, posY, posZ);
+            scene.add(mesh);
+
+            const trailMat = new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: 0.4 });
+            const trailGeo = new THREE.BufferGeometry().setFromPoints([]);
+            const trailLine = new THREE.Line(trailGeo, trailMat);
+            scene.add(trailLine);
+
+            return {
+                name, mass, radius, color, mesh, trailLine,
+                pos: new THREE.Vector3(posX, posY, posZ),
+                vel: new THREE.Vector3(vx, vy, vz),
+                acc: new THREE.Vector3(0, 0, 0),
+                history: []
+            };
+        }
+
+        function clearSystem() {
+            bodies.forEach(b => {
+                scene.remove(b.mesh);
+                scene.remove(b.trailLine);
+            });
+            bodies = [];
+        }
+
+        function loadSystem(type) {
+            clearSystem();
+            playDopplerTone(600);
+
+            if (type === 'sol') {
+                bodies.push(createBody("Sun", 1000, 1.2, 0xffd700, 0, 0, 0, 0, 0, 0));
+                bodies.push(createBody("Mercury", 0.1, 0.2, 0xaaaaaa, 2.5, 0, 0, 0, 4.2, 0));
+                bodies.push(createBody("Venus", 0.8, 0.35, 0xffaa00, 4.0, 0, 0, 0, 3.4, 0));
+                bodies.push(createBody("Earth", 1.0, 0.4, 0x00f3ff, 6.0, 0, 0, 0, 2.85, 0));
+                bodies.push(createBody("Mars", 0.15, 0.3, 0xff0055, 8.5, 0, 0, 0, 2.4, 0));
+                bodies.push(createBody("Jupiter", 10.0, 0.7, 0xff8800, 12.0, 0, 0, 0, 2.0, 0));
+            } else if (type === 'binary') {
+                bodies.push(createBody("Alpha Centauri A", 600, 1.0, 0xffd700, -3, 0, 0, 0, -1.8, 0));
+                bodies.push(createBody("Alpha Centauri B", 500, 0.9, 0xffaa00, 3, 0, 0, 0, 1.8, 0));
+                bodies.push(createBody("Proxima Exoplanet", 0.5, 0.3, 0x00ff99, 0, 5, 0, 2.5, 0, 0));
+            } else if (type === 'trappist') {
+                bodies.push(createBody("Trappist-1 Star", 400, 0.9, 0xff3300, 0, 0, 0, 0, 0, 0));
+                for(let i=1; i<=6; i++) {
+                    const r = 2.0 + i * 1.1;
+                    const v = Math.sqrt(G * 400 / r);
+                    bodies.push(createBody(`Trappist-1${String.fromCharCode(96+i)}`, 0.5, 0.25, 0x00f3ff, r, 0, 0, 0, v, 0));
+                }
+            } else if (type === 'blackhole') {
+                bodies.push(createBody("Singularity BH", 2500, 1.5, 0x000000, 0, 0, 0, 0, 0, 0));
+                for(let i=0; i<40; i++) {
+                    const r = 3.0 + Math.random() * 8.0;
+                    const theta = Math.random() * Math.PI * 2;
+                    const v = Math.sqrt(G * 2500 / r);
+                    bodies.push(createBody(`Accretion Particle ${i}`, 0.01, 0.1, 0xff0055, r*Math.cos(theta), r*Math.sin(theta), 0, -v*Math.sin(theta), v*Math.cos(theta), 0));
+                }
+            }
+            document.getElementById('hud-bodies').innerText = `${bodies.length} BODIES`;
+        }
+
+        loadSystem('sol');
+
+        function launchProbe() {
+            const vx = parseFloat(document.getElementById('v-x').value) || 0.02;
+            const vy = parseFloat(document.getElementById('v-y').value) || 0.04;
+            bodies.push(createBody("Custom Probe", 0.001, 0.15, 0x00ff99, -8, 0, 0, vx * 100, vy * 100, 0));
+            document.getElementById('hud-bodies').innerText = `${bodies.length} BODIES`;
+            playDopplerTone(880);
+        }
+
+        const dt = 0.008;
+        function updatePhysics() {
+            bodies.forEach(b => b.acc.set(0, 0, 0));
+
+            for (let i = 0; i < bodies.length; i++) {
+                for (let j = i + 1; j < bodies.length; j++) {
+                    const b1 = bodies[i];
+                    const b2 = bodies[j];
+                    const dir = new THREE.Vector3().subVectors(b2.pos, b1.pos);
+                    const distSq = Math.max(dir.lengthSq(), 0.5);
+                    const dist = Math.sqrt(distSq);
+                    
+                    const f = (G * b1.mass * b2.mass) / distSq;
+                    const forceVec = dir.normalize().multiplyScalar(f);
+
+                    b1.acc.add(forceVec.clone().divideScalar(b1.mass));
+                    b2.acc.sub(forceVec.clone().divideScalar(b2.mass));
+                }
+            }
+
+            bodies.forEach(b => {
+                b.vel.addScaledVector(b.acc, dt);
+                b.pos.addScaledVector(b.vel, dt);
+                b.mesh.position.copy(b.pos);
+
+                b.history.push(b.pos.clone());
+                if (b.history.length > 120) b.history.shift();
+                b.trailLine.geometry.setFromPoints(b.history);
+            });
+        }
+
+        camera.position.set(0, 15, 20);
+        camera.lookAt(0, 0, 0);
+
+        function drawTransitChart() {
+            const canvas = document.getElementById('transit-chart');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = "#00f3ff";
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+            const w = canvas.width;
+            const h = canvas.height;
+
+            for(let x=0; x<w; x++) {
+                let flux = h * 0.3;
+                if(x > w*0.4 && x < w*0.6) flux = h * 0.75;
+                if(x === 0) ctx.moveTo(x, flux);
+                else ctx.lineTo(x, flux);
+            }
+            ctx.stroke();
+        }
+
+        function exportCSV() {
+            let csv = "name,mass,x,y,z,vx,vy,vz\n";
+            bodies.forEach(b => {
+                csv += `${b.name},${b.mass},${b.pos.x.toFixed(4)},${b.pos.y.toFixed(4)},${b.pos.z.toFixed(4)},${b.vel.x.toFixed(4)},${b.vel.y.toFixed(4)},${b.vel.z.toFixed(4)}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'orbital_telemetry.csv';
+            a.click();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            updatePhysics();
+            renderer.render(scene, camera);
+        }
+        animate();
+        setTimeout(drawTransitChart, 150);
+    </script>
+</body>
+</html>

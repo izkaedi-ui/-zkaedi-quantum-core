@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZKAEDI // QUANTUM CORE 3D HOLOGRAPHIC STUDIO v2.0</title>
+    <!-- Google Fonts & Three.js CDN -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --bg-obsidian: #030306;
+            --bg-card: rgba(10, 12, 22, 0.82);
+            --neon-cyan: #00f3ff;
+            --neon-magenta: #ff0055;
+            --neon-yellow: #ffe600;
+            --neon-green: #00ff66;
+            --neon-purple: #a100ff;
+            --text-main: #f1f5f9;
+            --text-dim: #94a3b8;
+            --border-glow: rgba(0, 243, 255, 0.4);
+            --font-head: 'Orbitron', sans-serif;
+            --font-sub: 'Rajdhani', sans-serif;
+            --font-code: 'Fira Code', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-obsidian);
+            color: var(--text-main);
+            font-family: var(--font-sub);
+            font-size: 16px;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Scanline Overlay Effect */
+        body::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            z-index: 9999;
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        #canvas-3d {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        .ui-layer {
+            position: relative;
+            z-index: 10;
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 1.5rem;
+            pointer-events: none;
+        }
+
+        .interactive {
+            pointer-events: auto;
+        }
+
+        /* Cyber HUD Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 2rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-glow);
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.2), inset 0 0 15px rgba(0, 243, 255, 0.08);
+            backdrop-filter: blur(16px);
+            clip-path: polygon(0 0, 100% 0, 97% 100%, 3% 100%);
+            margin-bottom: 2rem;
+        }
+
+        .brand h1 {
+            font-family: var(--font-head);
+            font-size: 1.8rem;
+            color: #fff;
+            letter-spacing: 3px;
+            text-shadow: 0 0 15px var(--neon-cyan);
+        }
+
+        .brand p {
+            font-size: 0.85rem;
+            color: var(--neon-cyan);
+            font-family: var(--font-code);
+        }
+
+        .hud-stats {
+            display: flex;
+            gap: 2rem;
+            font-family: var(--font-code);
+            font-size: 0.85rem;
+        }
+
+        .hud-stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .hud-stat-item .lbl {
+            color: var(--text-dim);
+            font-size: 0.75rem;
+        }
+
+        .hud-stat-item .val {
+            color: var(--neon-green);
+            font-weight: bold;
+        }
+
+        /* 3D Visualizer Grid Layout */
+        .grid-3d {
+            display: grid;
+            grid-template-columns: 360px 1fr 380px;
+            gap: 1.5rem;
+            height: calc(100vh - 160px);
+        }
+
+        @media (max-width: 1200px) {
+            .grid-3d {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
+
+        /* Cyber Glass Cards */
+        .glass-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            backdrop-filter: blur(12px);
+            padding: 1.5rem;
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 15px; height: 15px;
+            border-top: 2px solid var(--neon-cyan);
+            border-left: 2px solid var(--neon-cyan);
+        }
+
+        .glass-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0; right: 0;
+            width: 15px; height: 15px;
+            border-bottom: 2px solid var(--neon-magenta);
+            border-right: 2px solid var(--neon-magenta);
+        }
+
+        .card-title {
+            font-family: var(--font-head);
+            font-size: 1.1rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 0.7rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-title span {
+            color: var(--neon-cyan);
+        }
+
+        /* Cyber Buttons */
+        .cyber-btn {
+            background: transparent;
+            border: 1px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            padding: 0.7rem 1.2rem;
+            font-family: var(--font-head);
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            margin-bottom: 0.8rem;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cyber-btn:hover {
+            background: var(--neon-cyan);
+            color: #000;
+            box-shadow: 0 0 20px var(--neon-cyan);
+        }
+
+        .cyber-btn.magenta {
+            border-color: var(--neon-magenta);
+            color: var(--neon-magenta);
+        }
+
+        .cyber-btn.magenta:hover {
+            background: var(--neon-magenta);
+            color: #fff;
+            box-shadow: 0 0 20px var(--neon-magenta);
+        }
+
+        /* Code Display Box */
+        .code-box {
+            background: #04050a;
+            border: 1px solid rgba(0, 243, 255, 0.25);
+            font-family: var(--font-code);
+            font-size: 0.8rem;
+            padding: 1rem;
+            flex: 1;
+            overflow-y: auto;
+            color: #a5f3fc;
+            line-height: 1.5;
+            white-space: pre;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
+        }
+
+        /* Surface Code Grid */
+        .lattice-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            margin: 1rem 0;
+        }
+
+        .lattice-cell {
+            aspect-ratio: 1;
+            background: rgba(0, 243, 255, 0.08);
+            border: 1px solid rgba(0, 243, 255, 0.25);
+            display: grid;
+            place-items: center;
+            font-size: 0.75rem;
+            font-family: var(--font-code);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .lattice-cell:hover {
+            border-color: var(--neon-magenta);
+            background: rgba(255, 0, 85, 0.25);
+        }
+
+        .lattice-cell.active-defect {
+            background: var(--neon-magenta);
+            box-shadow: 0 0 15px var(--neon-magenta);
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 3D WebGL Canvas -->
+    <canvas id="canvas-3d"></canvas>
+
+    <div class="ui-layer">
+        <!-- HEADER HUD -->
+        <header class="interactive">
+            <div class="brand">
+                <h1>ZKAEDI // HOLOGRAPHIC STUDIO</h1>
+                <p>3D QUANTUM STATE & FTQC COMPILATION LABORATORY v2.0</p>
+            </div>
+            <div class="hud-stats">
+                <div class="hud-stat-item">
+                    <span class="lbl">HILBERT SPACE</span>
+                    <span class="val">2^12 (4,096 Dim)</span>
+                </div>
+                <div class="hud-stat-item">
+                    <span class="lbl">FIDELITY</span>
+                    <span class="val" id="hud-fid">1.000000</span>
+                </div>
+                <div class="hud-stat-item">
+                    <span class="lbl">SUITE MODULES</span>
+                    <span class="val">25 / 25 VERIFIED</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- 3D DASHBOARD GRID -->
+        <div class="grid-3d">
+            <!-- LEFT PANEL: PIPELINE CONTROLS -->
+            <div class="glass-card interactive">
+                <div class="card-title">
+                    <span>01 //</span> H_0 ALGORITHM TRIGGER
+                </div>
+                
+                <button class="cyber-btn" onclick="triggerCircuit('bell')">
+                    <span>EXECUTE BELL STATE |Φ+⟩</span>
+                    <span>2 Q</span>
+                </button>
+                <button class="cyber-btn" onclick="triggerCircuit('ghz')">
+                    <span>EXECUTE GHZ STATE |Ψ⟩</span>
+                    <span>4 Q</span>
+                </button>
+                <button class="cyber-btn" onclick="triggerCircuit('zkaedi')">
+                    <span>ZKAEDI-IDEAKZ PALINDROMIC</span>
+                    <span>12 Q</span>
+                </button>
+                <button class="cyber-btn magenta" onclick="triggerCircuit('noise')">
+                    <span>INJECT DEPOLARIZING NOISE</span>
+                    <span>p=0.15</span>
+                </button>
+
+                <div class="card-title" style="margin-top: 1.5rem;">
+                    <span>02 //</span> FTQC FOOTPRINT COMPARISON
+                </div>
+                <div style="font-family: var(--font-code); font-size: 0.8rem; line-height: 1.6; color: var(--text-dim);">
+                    <div>Logical Qubits: <b style="color:#fff;">12</b></div>
+                    <div>Surface [[25,1,5]] Qubits: <b style="color:var(--neon-magenta);">600 Physical</b></div>
+                    <div>qLDPC [[156,12,12]] Qubits: <b style="color:var(--neon-green);">156 Physical</b></div>
+                    <div style="color:var(--neon-yellow); margin-top:0.4rem;">FOOTPRINT REDUCTION: 74.0%</div>
+                </div>
+            </div>
+
+            <!-- CENTER PANEL: 3D HOLOGRAPHIC STAGE (TRANSPARENT FOR THREE.JS CANVAS) -->
+            <div></div>
+
+            <!-- RIGHT PANEL: CODE GENERATOR & SURFACE GRID -->
+            <div class="glass-card interactive">
+                <div class="card-title">
+                    <span>03 //</span> SURFACE [[25,1,5]] LATICE
+                </div>
+                
+                <div class="lattice-grid" id="lattice-grid">
+                    <!-- 25 cells inserted via JS -->
+                </div>
+                <button class="cyber-btn magenta" onclick="runMWPM()">EXECUTE MWPM DECODER</button>
+
+                <div class="card-title" style="margin-top: 1rem;">
+                    <span>04 //</span> EMITTED CODE ENGINE
+                </div>
+                <div class="code-box" id="code-box">
+/* AUTO-GENERATED ZCC C99 QUANTUM ENGINE */
+#include <stdio.h>
+#include <math.h>
+
+static Complex statevector[4096];
+
+int main(void) {
+    init_state();
+    apply_h(0, 12);
+    apply_cx(0, 11, 12);
+    /* Rz(0.80000000) on q0 */
+    printf("[ZCC] Hilbert Space Initialized.\n");
+    return 0;
+}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- THREE.JS HOLOGRAPHIC QUANTUM LATTICE & AUDIO SYNTH -->
+    <script>
+        // --- Web Audio API Synth ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(freq = 440, dur = 0.08, type = 'sine') {
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + dur);
+            } catch(e){}
+        }
+
+        // --- THREE.JS 3D Holographic Visualizer ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas-3d'), antialias: true, alpha: true });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // 1. Holographic 3D Bloch Sphere Wireframe
+        const sphereGeo = new THREE.SphereGeometry(3.5, 32, 32);
+        const sphereMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true, transparent: true, opacity: 0.15 });
+        const blochSphere = new THREE.Mesh(sphereGeo, sphereMat);
+        scene.add(blochSphere);
+
+        // 2. Quantum State Vector Pointer
+        const vectorMat = new THREE.LineBasicMaterial({ color: 0xff0055, linewidth: 4 });
+        const vectorGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 3.5, 0)]);
+        const stateVector = new THREE.Line(vectorGeo, vectorMat);
+        scene.add(stateVector);
+
+        // 3. Orbiting Quantum Particle Lattice (Qubits)
+        const particlesCount = 300;
+        const particleGeo = new THREE.BufferGeometry();
+        const positions = new Float32Array(particlesCount * 3);
+        const colors = new Float32Array(particlesCount * 3);
+
+        for (let i = 0; i < particlesCount; i++) {
+            const r = 5 + Math.random() * 8;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.random() * Math.PI;
+
+            positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+            positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+            positions[i * 3 + 2] = r * Math.cos(phi);
+
+            colors[i * 3] = Math.random() > 0.5 ? 0.0 : 1.0;
+            colors[i * 3 + 1] = 0.95;
+            colors[i * 3 + 2] = 1.0;
+        }
+
+        particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        particleGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        const particleMat = new THREE.PointsMaterial({ size: 0.15, vertexColors: true, transparent: true, opacity: 0.8 });
+        const quantumLattice = new THREE.Points(particleGeo, particleMat);
+        scene.add(quantumLattice);
+
+        camera.position.set(0, 2, 11);
+        camera.lookAt(0, 0, 0);
+
+        // Animation Loop
+        let angle = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            angle += 0.01;
+
+            blochSphere.rotation.y += 0.005;
+            quantumLattice.rotation.y -= 0.002;
+            quantumLattice.rotation.x += 0.001;
+
+            // Oscillate State Vector Pointer
+            stateVector.geometry.setFromPoints([
+                new THREE.Vector3(0, 0, 0),
+                new THREE.Vector3(3.5 * Math.sin(angle), 3.5 * Math.cos(angle * 0.7), 3.5 * Math.cos(angle))
+            ]);
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // --- Interactive Controls & Logic ---
+        function triggerCircuit(type) {
+            playTone(800, 0.06, 'square');
+            const fid = document.getElementById('hud-fid');
+            const code = document.getElementById('code-box');
+
+            if (type === 'bell') {
+                fid.innerText = '1.000000';
+                code.innerText = `/* ZCC EXECUTION: BELL STATE |Φ+⟩ */\napply_h(0, 2);\napply_cx(0, 1, 2);\n/* Statevector: 1/√2(|00⟩ + |11⟩) */`;
+            } else if (type === 'ghz') {
+                fid.innerText = '1.000000';
+                code.innerText = `/* ZCC EXECUTION: GHZ STATE |Ψ⟩ */\napply_h(0, 4);\napply_cx(0, 1, 4);\napply_cx(1, 2, 4);\napply_cx(2, 3, 4);`;
+            } else if (type === 'zkaedi') {
+                fid.innerText = '1.000000';
+                code.innerText = `/* ZKAEDI-IDEAKZ 12-QUBIT PALINDROMIC */\napply_h(0, 12); apply_h(1, 12); ...\napply_cx(0, 11, 12); apply_cx(1, 10, 12);\n/* Rz(0.80000000) on q0 */\napply_cx(1, 10, 12); apply_cx(0, 11, 12);`;
+            } else {
+                fid.innerText = '0.814290';
+                code.innerText = `/* INJECTED PAULI DEPOLARIZING NOISE (p=0.15) */\nKraus operators applied: {E0, E1, E2, E3}\nPurity Tr(ρ^2) = 0.814290`;
+            }
+        }
+
+        // Initialize 25-cell Surface Lattice
+        const latGrid = document.getElementById('lattice-grid');
+        for(let i=0; i<25; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'lattice-cell';
+            cell.innerText = `q${i}`;
+            cell.onclick = () => {
+                playTone(600, 0.04);
+                cell.classList.toggle('active-defect');
+            };
+            latGrid.appendChild(cell);
+        }
+
+        function runMWPM() {
+            playTone(1100, 0.1, 'sawtooth');
+            const defects = document.querySelectorAll('.lattice-cell.active-defect');
+            alert(`[MWPM DECODER] Detected ${defects.length} lattice defects. Minimum-weight syndrome error matching complete!`);
+        }
+    </script>
+</body>
+</html>

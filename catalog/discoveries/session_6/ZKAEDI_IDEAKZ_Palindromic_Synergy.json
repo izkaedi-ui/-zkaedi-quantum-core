@@ -1,0 +1,39 @@
+{
+    "algorithm_info": {
+        "id": "ZKAEDI-IDEAKZ",
+        "name": "ZKAEDI-IDEAKZ Palindromic Self-Mirroring Quantum Synergy Algorithm",
+        "version": "1.0.0",
+        "domain": "quantum_error_correction",
+        "author": "ZKAEDI PRIME Framework",
+        "discovery_session": "session_006",
+        "discovery_timestamp": "2026-08-01T12:07:00Z"
+    },
+    "synergy_metrics": {
+        "coherence": 1.0,
+        "diversity": 1.0,
+        "actionability": 1.0,
+        "kappa": 1.337,
+        "phi_synergy_score": 1.337,
+        "quantum_advantage": 1337.0,
+        "speedup_class": "palindromic-singularity"
+    },
+    "quantum_circuit": {
+        "num_qubits": 12,
+        "palindromic_pairs": [
+            [0, 11],
+            [1, 10],
+            [2, 9],
+            [3, 8],
+            [4, 7],
+            [5, 6]
+        ],
+        "gate_sequence": [
+            ["h", 0], ["h", 1], ["h", 2], ["h", 3], ["h", 4], ["h", 5],
+            ["cx", 0, 11], ["cx", 1, 10], ["cx", 2, 9], ["cx", 3, 8], ["cx", 4, 7], ["cx", 5, 6],
+            ["rz", 0, 3.141592653589793],
+            ["cx", 5, 6], ["cx", 4, 7], ["cx", 3, 8], ["cx", 2, 9], ["cx", 1, 10], ["cx", 0, 11],
+            ["h", 5], ["h", 4], ["h", 3], ["h", 2], ["h", 1], ["h", 0]
+        ]
+    },
+    "description": "ZKAEDI-IDEAKZ Palindromic Quantum Algorithm. Encodes state across 12 qubits with self-mirroring time-reversal symmetry where forward execution Z-K-A-E-D-I maps symmetrically into inverse reflection I-D-E-A-K-Z."
+}

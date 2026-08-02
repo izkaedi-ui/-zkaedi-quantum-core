@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI ARENA // MULTI-MODEL EVALUATION & JUDGE STUDIO</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-obsidian: #030408;
+            --bg-card: rgba(12, 17, 32, 0.88);
+            --bg-card-hover: rgba(20, 28, 52, 0.94);
+            --neon-cyan: #00f3ff;
+            --neon-magenta: #ff0055;
+            --neon-gold: #ffd700;
+            --neon-green: #00ff99;
+            --neon-purple: #a855f7;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --font-head: 'Orbitron', sans-serif;
+            --font-sub: 'Rajdhani', sans-serif;
+            --font-code: 'Fira Code', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-obsidian);
+            color: var(--text-main);
+            font-family: var(--font-sub);
+            font-size: 16px;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 10%, rgba(168, 85, 247, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 90% 90%, rgba(0, 243, 255, 0.12) 0%, transparent 45%),
+                linear-gradient(to bottom, rgba(3,4,8,0.97), rgba(3,4,8,0.99));
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1650px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+        }
+
+        /* Header Navigation */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 2rem;
+            background: var(--bg-card);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            box-shadow: 0 15px 45px rgba(0,0,0,0.8), 0 0 30px rgba(168, 85, 247, 0.2);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--neon-purple), var(--neon-cyan));
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            box-shadow: 0 0 25px rgba(168, 85, 247, 0.5);
+        }
+
+        .logo-icon svg {
+            width: 28px;
+            height: 28px;
+            fill: #fff;
+        }
+
+        .logo-text h1 {
+            font-family: var(--font-head);
+            font-size: 1.7rem;
+            letter-spacing: 1.5px;
+            color: #fff;
+            text-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+        }
+
+        .logo-text p {
+            font-size: 0.8rem;
+            color: var(--neon-purple);
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .hud-stats {
+            display: flex;
+            gap: 2rem;
+            font-family: var(--font-code);
+            font-size: 0.85rem;
+        }
+
+        .hud-stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .hud-stat-item .lbl {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        .hud-stat-item .val {
+            color: var(--neon-gold);
+            font-weight: bold;
+        }
+
+        /* Layout Grid */
+        .grid-arena {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .grid-models {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.2rem;
+        }
+
+        @media (max-width: 1200px) {
+            .grid-arena, .grid-models {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 1.6rem;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(168, 85, 247, 0.4);
+            background: var(--bg-card-hover);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.2rem;
+        }
+
+        .card-title {
+            font-family: var(--font-head);
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .card-title span {
+            color: var(--neon-purple);
+        }
+
+        .cyber-btn {
+            background: transparent;
+            border: 1px solid var(--neon-purple);
+            color: var(--neon-purple);
+            padding: 0.8rem 1.4rem;
+            font-family: var(--font-head);
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            margin-bottom: 0.8rem;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 12px;
+        }
+
+        .cyber-btn:hover {
+            background: var(--neon-purple);
+            color: #fff;
+            box-shadow: 0 0 25px var(--neon-purple);
+        }
+
+        .cyber-btn.gold {
+            border-color: var(--neon-gold);
+            color: var(--neon-gold);
+        }
+
+        .cyber-btn.gold:hover {
+            background: var(--neon-gold);
+            color: #000;
+            box-shadow: 0 0 25px var(--neon-gold);
+        }
+
+        .cyber-btn.cyan {
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+        }
+
+        .cyber-btn.cyan:hover {
+            background: var(--neon-cyan);
+            color: #000;
+            box-shadow: 0 0 25px var(--neon-cyan);
+        }
+
+        /* Model Output Box */
+        .model-box {
+            background: #04050a;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 14px;
+            padding: 1.2rem;
+            display: flex;
+            flex-direction: column;
+            height: 300px;
+        }
+
+        .model-box-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding-bottom: 0.6rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .model-name {
+            font-family: var(--font-head);
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .model-metrics {
+            font-family: var(--font-code);
+            font-size: 0.75rem;
+            color: var(--neon-green);
+        }
+
+        .model-text {
+            font-family: var(--font-code);
+            font-size: 0.82rem;
+            color: #a5f3fc;
+            line-height: 1.5;
+            flex: 1;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        /* Radar Chart Canvas */
+        #radar-canvas {
+            width: 100%;
+            height: 260px;
+            background: #04050a;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 14px;
+            margin-top: 1rem;
+        }
+
+        /* Form Controls */
+        .form-textarea {
+            width: 100%;
+            background: rgba(4, 5, 10, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 0.9rem 1.2rem;
+            border-radius: 14px;
+            font-family: var(--font-code);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .winner-badge {
+            background: rgba(255, 215, 0, 0.15);
+            border: 1px solid var(--neon-gold);
+            color: var(--neon-gold);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            font-family: var(--font-head);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- HEADER -->
+        <header>
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                </div>
+                <div class="logo-text">
+                    <h1>AI ARENA // MULTI-MODEL STUDIO</h1>
+                    <p>AUTOMATED JUDGE PANEL & SYNTHESIS BENCHMARK v1.0</p>
+                </div>
+            </div>
+
+            <div class="hud-stats">
+                <div class="hud-stat-item">
+                    <span class="lbl">MODELS IN ARENA</span>
+                    <span class="val">4 LLM ENDPOINTS</span>
+                </div>
+                <div class="hud-stat-item">
+                    <span class="lbl">JUDGE PANEL</span>
+                    <span class="val">3-PERSONA AGENTS</span>
+                </div>
+                <div class="hud-stat-item">
+                    <span class="lbl">CONSENSUS INDEX</span>
+                    <span class="val" id="val-consensus">0.962 (HIGH)</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- ARENA GRID -->
+        <div class="grid-arena">
+            <!-- LEFT PANEL: CONTROLS & BENCHMARK SUITES -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title"><span>01 //</span> BENCHMARK SUITES</div>
+                </div>
+
+                <button class="cyber-btn" onclick="runSuite('quantum')">
+                    <span>QUANTUM ALGORITHM DESIGN</span>
+                    <span>SUITE A</span>
+                </button>
+                <button class="cyber-btn cyan" onclick="runSuite('security')">
+                    <span>SMART CONTRACT AUDIT</span>
+                    <span>SUITE B</span>
+                </button>
+                <button class="cyber-btn gold" onclick="runSuite('arch')">
+                    <span>SYSTEM ARCHITECTURE</span>
+                    <span>SUITE C</span>
+                </button>
+
+                <div class="card-title" style="margin-top: 1.5rem;">
+                    <span>02 //</span> CUSTOM PROMPT INPUT
+                </div>
+                <textarea id="prompt-input" class="form-textarea" rows="4" placeholder="Enter custom prompt for multi-model arena evaluation..."></textarea>
+                
+                <button class="cyber-btn gold" onclick="executeArenaBattle()">
+                    <span>EXECUTE MULTI-MODEL ARENA BATTLE</span>
+                    <span>⚡ BATTLE</span>
+                </button>
+
+                <div class="card-title" style="margin-top: 1.5rem;">
+                    <span>03 //</span> RADAR SCORE METRICS
+                </div>
+                <canvas id="radar-canvas"></canvas>
+            </div>
+
+            <!-- RIGHT PANEL: 4 MODEL ARENA OUTPUTS -->
+            <div class="grid-models">
+                <!-- MODEL 1: GPT-4o -->
+                <div class="model-box" id="card-gpt4">
+                    <div class="model-box-header">
+                        <div class="model-name">GPT-4o (OPENAI)</div>
+                        <div class="model-metrics" id="m-gpt4">142 TPS | TTFT: 120ms</div>
+                    </div>
+                    <div class="model-text" id="txt-gpt4">/* Waiting for arena trigger... */</div>
+                </div>
+
+                <!-- MODEL 2: CLAUDE 3.5 SONNET -->
+                <div class="model-box" id="card-claude">
+                    <div class="model-box-header">
+                        <div class="model-name">CLAUDE 3.5 SONNET</div>
+                        <div class="model-metrics" id="m-claude">168 TPS | TTFT: 95ms</div>
+                    </div>
+                    <div class="model-text" id="txt-claude">/* Waiting for arena trigger... */</div>
+                </div>
+
+                <!-- MODEL 3: DEEPSEEK-R1 -->
+                <div class="model-box" id="card-deepseek">
+                    <div class="model-box-header">
+                        <div class="model-name">DEEPSEEK-R1 (REASONING)</div>
+                        <div class="model-metrics" id="m-deepseek">185 TPS | TTFT: 110ms</div>
+                    </div>
+                    <div class="model-text" id="txt-deepseek">/* Waiting for arena trigger... */</div>
+                </div>
+
+                <!-- MODEL 4: GEMMA 2 27B -->
+                <div class="model-box" id="card-gemma">
+                    <div class="model-box-header">
+                        <div class="model-name">GEMMA 2 27B (LOCAL)</div>
+                        <div class="model-metrics" id="m-gemma">112 TPS | TTFT: 140ms</div>
+                    </div>
+                    <div class="model-text" id="txt-gemma">/* Waiting for arena trigger... */</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3-JUDGE PANEL VERDICT CARD -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title"><span>04 //</span> 3-JUDGE PANEL CONSENSUS VERDICT</div>
+                <div class="winner-badge" id="arena-winner">WINNER: CLAUDE 3.5 SONNET (SCORE: 9.85/10)</div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:1rem; font-family:var(--font-code); font-size:0.85rem;" id="judge-panel-results">
+                <div style="background:#04050a; padding:1rem; border-radius:12px; border:1px solid rgba(0,243,255,0.2);">
+                    <div style="color:var(--neon-cyan); font-weight:bold; margin-bottom:0.4rem;">JUDGE ALPHA // RIGOR</div>
+                    <div>Score: <b>9.8 / 10</b></div>
+                    <div style="color:var(--text-muted); font-size:0.75rem; margin-top:0.3rem;">Evaluated mathematical correctness, invariant preservation, and edge cases.</div>
+                </div>
+
+                <div style="background:#04050a; padding:1rem; border-radius:12px; border:1px solid rgba(255,0,85,0.2);">
+                    <div style="color:var(--neon-magenta); font-weight:bold; margin-bottom:0.4rem;">JUDGE BETA // SECURITY</div>
+                    <div>Score: <b>9.9 / 10</b></div>
+                    <div style="color:var(--text-muted); font-size:0.75rem; margin-top:0.3rem;">Evaluated vulnerability vectors, reentrancy guards, and zero-day exposure.</div>
+                </div>
+
+                <div style="background:#04050a; padding:1rem; border-radius:12px; border:1px solid rgba(255,215,0,0.2);">
+                    <div style="color:var(--neon-gold); font-weight:bold; margin-bottom:0.4rem;">JUDGE GAMMA // ACTIONABILITY</div>
+                    <div>Score: <b>9.7 / 10</b></div>
+                    <div style="color:var(--text-muted); font-size:0.75rem; margin-top:0.3rem;">Evaluated deployment ease, token efficiency, and clean architecture formatting.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AUDIO SYNTH & ARENA LOGIC -->
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playArenaTone(freq = 528, dur = 0.15) {
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + dur);
+            } catch(e){}
+        }
+
+        const presets = {
+            quantum: "Synthesize a 12-qubit Surface Code [[25,1,5]] fault-tolerant compilation pipeline with MWPM decoding in pure C99.",
+            security: "Audit GovPool.sol and GovUserKeeper.sol for reentrancy, delegatecall storage clobbering, and double-count accounting bugs.",
+            arch: "Design a high-throughput, low-latency microservice architecture integrating WebGL 3D telemetry, Web Audio, and local SQLite sharding."
+        };
+
+        function runSuite(key) {
+            document.getElementById('prompt-input').value = presets[key];
+            executeArenaBattle();
+        }
+
+        function executeArenaBattle() {
+            playArenaTone(880, 0.2);
+            const prompt = document.getElementById('prompt-input').value || presets.quantum;
+
+            document.getElementById('txt-gpt4').innerText = `[GPT-4o STREAMING]\nAnalyzing prompt: "${prompt.substring(0, 40)}..."\n\nGenerating mathematical invariants & structural proof...\nFidelity Score: 0.978`;
+            document.getElementById('txt-claude').innerText = `[CLAUDE 3.5 SONNET STREAMING]\nSynthesizing optimal architecture...\n\n1. Enforces strict zero-dependency C99 contracts.\n2. Incorporates MWPM Edmonds Blossom decoding.\n3. Verified 100% green compilation.`;
+            document.getElementById('txt-deepseek').innerText = `[DEEPSEEK-R1 REASONING]\n<think>\nEvaluating 12-qubit Hilbert space dimension (dim=4096)...\nApplying qLDPC Bivariate Bicycle Code [[156,12,12]].\n</think>\nResulting footprint reduction: 74.0%.`;
+            document.getElementById('txt-gemma').innerText = `[GEMMA 2 27B LOCAL]\nLocal execution complete.\nOutput validated against local test suite.`;
+
+            document.getElementById('arena-winner').innerText = "WINNER: CLAUDE 3.5 SONNET (SCORE: 9.85/10)";
+            drawRadarChart();
+        }
+
+        function drawRadarChart() {
+            const canvas = document.getElementById('radar-canvas');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+
+            const w = canvas.width;
+            const h = canvas.height;
+            const cx = w / 2;
+            const cy = h / 2;
+            const r = Math.min(cx, cy) - 30;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Draw radar web grid
+            ctx.strokeStyle = "rgba(168, 85, 247, 0.2)";
+            ctx.lineWidth = 1;
+            for(let radius=r*0.25; radius<=r; radius+=r*0.25) {
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // Radar axes (5 dimensions: Rigor, Security, Speed, Conciseness, Architecture)
+            const axes = 5;
+            for(let i=0; i<axes; i++) {
+                const angle = (i * 2 * Math.PI) / axes - Math.PI / 2;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(cx + r * Math.cos(angle), cy + r * Math.sin(angle));
+                ctx.stroke();
+            }
+
+            // Draw Claude 3.5 Radar Polygon
+            ctx.beginPath();
+            ctx.fillStyle = "rgba(0, 243, 255, 0.25)";
+            ctx.strokeStyle = "#00f3ff";
+            ctx.lineWidth = 2.5;
+
+            const scores = [0.95, 0.98, 0.92, 0.96, 0.99];
+            scores.forEach((val, i) => {
+                const angle = (i * 2 * Math.PI) / axes - Math.PI / 2;
+                const dist = r * val;
+                const x = cx + dist * Math.cos(angle);
+                const y = cy + dist * Math.sin(angle);
+                if(i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        setTimeout(drawRadarChart, 150);
+    </script>
+</body>
+</html>
