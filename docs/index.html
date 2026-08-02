@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZKAEDI // SOVEREIGN OBSERVATORY LANDING HUB</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-obsidian: #030408;
+            --bg-card: rgba(12, 17, 32, 0.88);
+            --bg-card-hover: rgba(22, 32, 56, 0.94);
+            --neon-cyan: #00f3ff;
+            --neon-magenta: #ff0055;
+            --neon-gold: #ffd700;
+            --neon-green: #00ff99;
+            --neon-purple: #a855f7;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --font-head: 'Orbitron', sans-serif;
+            --font-sub: 'Rajdhani', sans-serif;
+            --font-code: 'Fira Code', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-obsidian);
+            color: var(--text-main);
+            font-family: var(--font-sub);
+            font-size: 16px;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 10% 10%, rgba(0, 243, 255, 0.1) 0%, transparent 45%),
+                radial-gradient(circle at 90% 90%, rgba(255, 0, 85, 0.1) 0%, transparent 45%),
+                linear-gradient(to bottom, rgba(3,4,8,0.97), rgba(3,4,8,0.99));
+        }
+
+        .container {
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header Navigation */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2.5rem;
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 35px rgba(0, 243, 255, 0.2);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+        }
+
+        .logo-icon {
+            width: 54px;
+            height: 54px;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta));
+            border-radius: 16px;
+            display: grid;
+            place-items: center;
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.5);
+        }
+
+        .logo-icon svg {
+            width: 30px;
+            height: 30px;
+            fill: #000;
+        }
+
+        .logo-text h1 {
+            font-family: var(--font-head);
+            font-size: 2rem;
+            letter-spacing: 2px;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(0, 243, 255, 0.5);
+        }
+
+        .logo-text p {
+            font-size: 0.85rem;
+            color: var(--neon-cyan);
+            font-weight: 700;
+            letter-spacing: 1.5px;
+        }
+
+        .hud-badge {
+            background: rgba(0, 255, 153, 0.15);
+            border: 1px solid var(--neon-green);
+            color: var(--neon-green);
+            padding: 0.6rem 1.4rem;
+            border-radius: 20px;
+            font-family: var(--font-head);
+            font-size: 0.85rem;
+            font-weight: 800;
+        }
+
+        /* Hero Banner */
+        .hero {
+            text-align: center;
+            margin-bottom: 3.5rem;
+        }
+
+        .hero h2 {
+            font-family: var(--font-head);
+            font-size: 3rem;
+            font-weight: 900;
+            color: #fff;
+            margin-bottom: 1rem;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #fff, var(--neon-cyan), var(--neon-magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Portal Cards Grid */
+        .portal-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        @media (max-width: 1000px) {
+            .portal-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .portal-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 24px;
+            padding: 2.2rem;
+            backdrop-filter: blur(18px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            transition: all 0.35s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .portal-card:hover {
+            transform: translateY(-6px);
+            border-color: var(--neon-cyan);
+            background: var(--bg-card-hover);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.8), 0 0 35px rgba(0, 243, 255, 0.25);
+        }
+
+        .portal-tag {
+            font-family: var(--font-code);
+            font-size: 0.8rem;
+            color: var(--neon-gold);
+            letter-spacing: 1px;
+            margin-bottom: 0.8rem;
+        }
+
+        .portal-title {
+            font-family: var(--font-head);
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .portal-desc {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1.8rem;
+            flex: 1;
+        }
+
+        .portal-btn {
+            background: linear-gradient(135deg, var(--neon-cyan), #00c875);
+            color: #000;
+            border: none;
+            padding: 1rem 1.8rem;
+            border-radius: 14px;
+            font-family: var(--font-head);
+            font-weight: 800;
+            font-size: 0.95rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.25s ease;
+        }
+
+        .portal-btn:hover {
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.5);
+            transform: scale(1.02);
+        }
+
+        .portal-btn.magenta {
+            background: linear-gradient(135deg, var(--neon-magenta), var(--neon-purple));
+            color: #fff;
+        }
+
+        .portal-btn.magenta:hover {
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.5);
+        }
+
+        .portal-btn.green {
+            background: linear-gradient(135deg, var(--neon-green), #00c875);
+            color: #000;
+        }
+
+        .portal-btn.green:hover {
+            box-shadow: 0 0 30px rgba(0, 255, 153, 0.5);
+        }
+
+        .portal-btn.gold {
+            background: linear-gradient(135deg, var(--neon-gold), #ffaa00);
+            color: #000;
+        }
+
+        .portal-btn.gold:hover {
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+
+        footer {
+            text-align: center;
+            color: var(--text-muted);
+            font-family: var(--font-code);
+            font-size: 0.85rem;
+            padding: 2rem 0;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- HEADER -->
+        <header>
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                </div>
+                <div class="logo-text">
+                    <h1>ZKAEDI // OBSERVATORY HUB</h1>
+                    <p>SOVEREIGN 3D WEBGL & COMPILATION PORTAL</p>
+                </div>
+            </div>
+
+            <div class="hud-badge">
+                ● ALL 25 MODULES VERIFIED & LIVE
+            </div>
+        </header>
+
+        <!-- HERO BANNER -->
+        <div class="hero">
+            <h2>ENTER THE SOVEREIGN SUITE</h2>
+            <p>
+                Explore zero-dependency interactive WebGL laboratories spanning Fault-Tolerant Quantum Computing, AI Multi-Model Judging Arenas, 3D Clinical Bio-Triage, and Relativistic Celestial Mechanics.
+            </p>
+        </div>
+
+        <!-- PORTAL CARDS GRID -->
+        <div class="portal-grid">
+            <!-- PORTAL 1: QUANTUM HOLOGRAPHIC STUDIO -->
+            <div class="portal-card">
+                <div>
+                    <div class="portal-tag">DOMAIN 01 // QUANTUM COMPILATION</div>
+                    <div class="portal-title">🔮 QUANTUM HOLOGRAPHIC STUDIO v2.0</div>
+                    <div class="portal-desc">
+                        Interactive 3D WebGL Bloch sphere visualizer, 300-particle quantum state lattice, Surface Code [[25,1,5]] MWPM defect decoder, qLDPC resource modeler, and live ZCC C99 compiler code generator.
+                    </div>
+                </div>
+                <a href="quantum_core_holographic_studio.html" class="portal-btn">
+                    <span>LAUNCH QUANTUM STUDIO</span>
+                    <span>→</span>
+                </a>
+            </div>
+
+            <!-- PORTAL 2: AI MULTI-MODEL ARENA -->
+            <div class="portal-card">
+                <div>
+                    <div class="portal-tag">DOMAIN 02 // MULTI-MODEL AI EVALUATION</div>
+                    <div class="portal-title">🤖 AI MULTI-MODEL ARENA v1.0</div>
+                    <div class="portal-desc">
+                        Interactive 4-LLM battle arena evaluating GPT-4o, Claude 3.5 Sonnet, DeepSeek-R1, and Gemma 2 side-by-side with 3-Judge automated consensus panels and HTML5 radar metric charts.
+                    </div>
+                </div>
+                <a href="multi_model_arena.html" class="portal-btn magenta">
+                    <span>LAUNCH AI ARENA</span>
+                    <span>→</span>
+                </a>
+            </div>
+
+            <!-- PORTAL 3: AURA HEALTH OMEGA -->
+            <div class="portal-card">
+                <div>
+                    <div class="portal-tag">DOMAIN 03 // CLINICAL HEALTH & BIO-TRIAGE</div>
+                    <div class="portal-title">🌿 AURA HEALTH OMEGA v4.0</div>
+                    <div class="portal-desc">
+                        Supreme Clinical Companion featuring an interactive 3D Anatomical Body Map, AI Drug Safety Engine, Mood Bio-Tracker, TDEE Nutrition calculator, 432Hz soundscape, and printable medical report exporter.
+                    </div>
+                </div>
+                <a href="aura_health_companion.html" class="portal-btn green">
+                    <span>LAUNCH AURA HEALTH</span>
+                    <span>→</span>
+                </a>
+            </div>
+
+            <!-- PORTAL 4: ORBITAL PRIME -->
+            <div class="portal-card">
+                <div>
+                    <div class="portal-tag">DOMAIN 04 // ASTRODYNAMICS & CELESTIAL MECHANICS</div>
+                    <div class="portal-title">🪐 ORBITAL PRIME v2.0</div>
+                    <div class="portal-desc">
+                        3D N-Body Velocity Verlet Gravitational Simulator featuring Sol System, Alpha Centauri Binary, Trappist-1 Exoplanets, Supermassive Black Hole Accretion Disk, Doppler Pitch Synth, and CSV telemetry exporter.
+                    </div>
+                </div>
+                <a href="orbital_prime_nbody_studio.html" class="portal-btn gold">
+                    <span>LAUNCH ORBITAL PRIME</span>
+                    <span>→</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <footer>
+            ZKAEDI QUANTUM CORE v1.0.0 — OPEN SOURCE UNDER MIT LICENSE — GITHUB: IZKAEDI-UI/-ZKAEDI-QUANTUM-CORE
+        </footer>
+    </div>
+</body>
+</html>

@@ -36,6 +36,7 @@ Single-file, zero-dependency HTML/WebGL applications for compiler intuition and 
 
 | Visual Studio | Description | Direct Link |
 |---|---|---|
+| 👑 **Sovereign Observatory Hub** | Master Landing Portal linking all 4 WebGL studios under one cyberpunk HUD. | [index.html](docs/index.html) |
 | 🔮 **ZKAEDI Holographic Studio v2.0** | 3D WebGL Bloch Sphere visualizer, 300-particle quantum lattice, Surface Code [[25,1,5]] MWPM decoder, and live ZCC C99 C code generator. | [quantum_core_holographic_studio.html](docs/quantum_core_holographic_studio.html) |
 | 🤖 **AI Multi-Model Arena v1.0** | Interactive 4-LLM battle arena (GPT-4o, Claude 3.5 Sonnet, DeepSeek-R1, Gemma 2) with 3-Judge automated consensus panel & radar charts. | [multi_model_arena.html](docs/multi_model_arena.html) |
 | 🌿 **AURA Health OMEGA v4.0** | Supreme Clinical Companion featuring a 3D Anatomical Body Map, AI Drug Safety Checker, Mood Bio-Tracker, TDEE Calculator, 432Hz Soundscape, and printable medical report exporter. | [aura_health_companion.html](docs/aura_health_companion.html) |
