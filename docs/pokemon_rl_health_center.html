@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POKÉMON RL HEALTH CENTER & QUANTUM GYM ARENA v3.0</title>
+    <!-- Google Fonts & Three.js CDN -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Press+Start+2P&family=Rajdhani:wght@600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #03040a;
+            --bg-card: rgba(14, 20, 36, 0.92);
+            --bg-card-hover: rgba(24, 34, 60, 0.96);
+            --poke-red: #ff3355;
+            --poke-white: #ffffff;
+            --poke-yellow: #ffcc00;
+            --poke-cyan: #00f3ff;
+            --poke-green: #00ff88;
+            --poke-purple: #a855f7;
+            --poke-blue: #3b82f6;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --font-pixel: 'Press Start 2P', monospace;
+            --font-sub: 'Rajdhani', sans-serif;
+            --font-code: 'Fira Code', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-sub);
+            font-size: 16px;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 15%, rgba(255, 51, 85, 0.18) 0%, transparent 50%),
+                radial-gradient(circle at 85% 85%, rgba(0, 243, 255, 0.14) 0%, transparent 50%),
+                linear-gradient(to bottom, rgba(3,4,10,0.97), rgba(3,4,10,0.99));
+        }
+
+        .container {
+            max-width: 1650px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+        }
+
+        /* Header Navigation */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 2.2rem;
+            background: var(--bg-card);
+            border: 2px solid var(--poke-red);
+            border-radius: 24px;
+            margin-bottom: 2rem;
+            box-shadow: 0 15px 45px rgba(255, 51, 85, 0.3);
+            backdrop-filter: blur(20px);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+        }
+
+        .logo-ball {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(to bottom, var(--poke-red) 50%, #fff 50%);
+            border: 4px solid #000;
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 0 0 25px rgba(255, 51, 85, 0.7);
+            display: grid;
+            place-items: center;
+        }
+
+        .logo-ball::after {
+            content: "";
+            width: 18px;
+            height: 18px;
+            background: #fff;
+            border: 3px solid #000;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #fff;
+        }
+
+        .logo-text h1 {
+            font-family: var(--font-pixel);
+            font-size: 1.15rem;
+            color: #fff;
+            text-shadow: 3px 3px 0px #000, 0 0 15px var(--poke-red);
+            letter-spacing: 1px;
+        }
+
+        .logo-text p {
+            font-size: 0.85rem;
+            color: var(--poke-yellow);
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            margin-top: 0.3rem;
+        }
+
+        .hud-status {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nurse-badge {
+            background: rgba(0, 255, 136, 0.15);
+            border: 2px solid var(--poke-green);
+            color: var(--poke-green);
+            padding: 0.6rem 1.2rem;
+            border-radius: 20px;
+            font-family: var(--font-pixel);
+            font-size: 0.65rem;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .pc-badge {
+            background: rgba(0, 243, 255, 0.15);
+            border: 2px solid var(--poke-cyan);
+            color: var(--poke-cyan);
+            padding: 0.6rem 1.2rem;
+            border-radius: 20px;
+            font-family: var(--font-pixel);
+            font-size: 0.65rem;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+        }
+
+        /* Layout Grid */
+        .grid-center {
+            display: grid;
+            grid-template-columns: 1fr 450px;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 1100px) {
+            .grid-center {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 24px;
+            padding: 1.8rem;
+            backdrop-filter: blur(18px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding-bottom: 0.8rem;
+        }
+
+        .card-title {
+            font-family: var(--font-pixel);
+            font-size: 0.85rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        /* 3D WebGL Healing Machine Canvas */
+        #healing-canvas {
+            width: 100%;
+            height: 320px;
+            background: #020307;
+            border: 2px solid var(--poke-cyan);
+            border-radius: 20px;
+            box-shadow: inset 0 0 30px rgba(0, 243, 255, 0.2);
+            margin-bottom: 1.2rem;
+        }
+
+        /* Pokeball Party Grid */
+        .party-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .party-card {
+            background: rgba(6, 9, 20, 0.95);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            transition: all 0.25s ease;
+            cursor: pointer;
+        }
+
+        .party-card:hover {
+            border-color: var(--poke-yellow);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 204, 0, 0.25);
+        }
+
+        .party-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(to bottom, var(--poke-red) 50%, #fff 50%);
+            border: 2px solid #000;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .party-info {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .party-name {
+            font-family: var(--font-pixel);
+            font-size: 0.62rem;
+            color: #fff;
+            margin-bottom: 0.3rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .party-level {
+            font-size: 0.75rem;
+            color: var(--poke-yellow);
+            font-weight: bold;
+        }
+
+        .hp-bar-bg {
+            width: 100%;
+            height: 8px;
+            background: #111;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.3rem;
+        }
+
+        .hp-bar-fill {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, var(--poke-green), #00ffcc);
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+
+        /* 8 GYM BADGES GRID */
+        .badge-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .badge-item {
+            background: rgba(4, 6, 15, 0.9);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 12px;
+            padding: 0.7rem;
+            text-align: center;
+            transition: all 0.25s ease;
+        }
+
+        .badge-item.unlocked {
+            border-color: var(--poke-yellow);
+            background: rgba(255, 204, 0, 0.12);
+            box-shadow: 0 0 15px rgba(255, 204, 0, 0.3);
+        }
+
+        .badge-icon {
+            font-size: 1.4rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .badge-name {
+            font-family: var(--font-pixel);
+            font-size: 0.5rem;
+            color: #fff;
+        }
+
+        /* POKÉMON MART ITEM SHOP */
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .shop-item {
+            background: rgba(0, 243, 255, 0.05);
+            border: 1px solid var(--poke-cyan);
+            border-radius: 14px;
+            padding: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .shop-item:hover {
+            background: var(--poke-cyan);
+            color: #000;
+            box-shadow: 0 0 20px var(--poke-cyan);
+        }
+
+        .shop-item-title {
+            font-family: var(--font-pixel);
+            font-size: 0.58rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .shop-item-desc {
+            font-size: 0.75rem;
+            opacity: 0.85;
+        }
+
+        /* Action Buttons */
+        .btn-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .heal-btn {
+            background: linear-gradient(135deg, var(--poke-red), #ff0055);
+            color: #fff;
+            border: none;
+            padding: 1.1rem;
+            border-radius: 16px;
+            font-family: var(--font-pixel);
+            font-size: 0.72rem;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(255, 51, 85, 0.4);
+            transition: all 0.25s ease;
+            text-align: center;
+        }
+
+        .heal-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 15px 40px rgba(255, 51, 85, 0.6);
+        }
+
+        .evolve-btn {
+            background: linear-gradient(135deg, var(--poke-purple), #8b5cf6);
+            color: #fff;
+            border: none;
+            padding: 1.1rem;
+            border-radius: 16px;
+            font-family: var(--font-pixel);
+            font-size: 0.72rem;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(168, 85, 247, 0.4);
+            transition: all 0.25s ease;
+            text-align: center;
+        }
+
+        .evolve-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 15px 40px rgba(168, 85, 247, 0.6);
+        }
+
+        /* Console Output Box */
+        .terminal-box {
+            background: #020307;
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            border-radius: 16px;
+            padding: 1rem;
+            font-family: var(--font-code);
+            font-size: 0.8rem;
+            color: var(--poke-cyan);
+            height: 220px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- HEADER -->
+        <header>
+            <div class="logo">
+                <div class="logo-ball"></div>
+                <div class="logo-text">
+                    <h1>POKÉMON RL HEALTH CENTER</h1>
+                    <p>QUANTUM-RL REWARD ENGINE & GYM ARENA v3.0</p>
+                </div>
+            </div>
+
+            <div class="hud-status">
+                <div class="nurse-badge">● NURSE JOY: READY</div>
+                <div class="pc-badge">💻 BILL'S PC: ONLINE</div>
+            </div>
+        </header>
+
+        <!-- MAIN CENTER GRID -->
+        <div class="grid-center">
+            <!-- LEFT: 3D HEALING MACHINE & 8 GYM BADGES -->
+            <div>
+                <!-- 3D HEALING TRAY -->
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <div class="card-header">
+                        <div class="card-title">🎮 3D HEALING MACHINE TRAY</div>
+                        <div style="font-family:var(--font-code); font-size:0.75rem; color:var(--poke-yellow);" id="stat-hub">STATUS: ALL AGENTS RESTORED</div>
+                    </div>
+
+                    <canvas id="healing-canvas"></canvas>
+
+                    <!-- POKEMON PARTY AGENTS -->
+                    <div class="party-grid">
+                        <div class="party-card" onclick="selectAgent('Pika-Qubit')">
+                            <div class="party-icon"></div>
+                            <div class="party-info">
+                                <div class="party-name" id="name-1">PIKA-QUBIT</div>
+                                <div class="party-level" id="lvl-1">Lv. 99 (QAOA)</div>
+                                <div class="hp-bar-bg"><div class="hp-bar-fill" id="hp-1"></div></div>
+                            </div>
+                        </div>
+
+                        <div class="party-card" onclick="selectAgent('Chariz-LLM')">
+                            <div class="party-icon" style="background:linear-gradient(to bottom, #ff9900 50%, #fff 50%);"></div>
+                            <div class="party-info">
+                                <div class="party-name">CHARIZ-LLM</div>
+                                <div class="party-level">Lv. 85 (CLAUDE)</div>
+                                <div class="hp-bar-bg"><div class="hp-bar-fill" id="hp-2"></div></div>
+                            </div>
+                        </div>
+
+                        <div class="party-card" onclick="selectAgent('Mewtwo-ZK')">
+                            <div class="party-icon" style="background:linear-gradient(to bottom, #a855f7 50%, #fff 50%);"></div>
+                            <div class="party-info">
+                                <div class="party-name">MEWTWO-ZK</div>
+                                <div class="party-level">Lv. 100 (SNARK)</div>
+                                <div class="hp-bar-bg"><div class="hp-bar-fill" id="hp-3"></div></div>
+                            </div>
+                        </div>
+
+                        <div class="party-card" onclick="selectAgent('Gyarados-MPS')">
+                            <div class="party-icon" style="background:linear-gradient(to bottom, #00f3ff 50%, #fff 50%);"></div>
+                            <div class="party-info">
+                                <div class="party-name">GYARADOS-MPS</div>
+                                <div class="party-level">Lv. 92 (TENSOR)</div>
+                                <div class="hp-bar-bg"><div class="hp-bar-fill" id="hp-4"></div></div>
+                            </div>
+                        </div>
+
+                        <div class="party-card" onclick="selectAgent('Gengar-EVM')">
+                            <div class="party-icon" style="background:linear-gradient(to bottom, #ff0055 50%, #fff 50%);"></div>
+                            <div class="party-info">
+                                <div class="party-name">GENGAR-EVM</div>
+                                <div class="party-level">Lv. 78 (EXPLOIT)</div>
+                                <div class="hp-bar-bg"><div class="hp-bar-fill" id="hp-5"></div></div>
+                            </div>
+                        </div>
+
+                        <div class="party-card" onclick="selectAgent('Snorlax-C99')">
+                            <div class="party-icon" style="background:linear-gradient(to bottom, #00ff88 50%, #fff 50%);"></div>
+                            <div class="party-info">
+                                <div class="party-name">SNORLAX-C99</div>
+                                <div class="party-level">Lv. 88 (ZCC)</div>
+                                <div class="hp-bar-bg"><div class="hp-bar-fill" id="hp-6"></div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="heal-btn" onclick="triggerPokeCenterHeal()">
+                            🎵 HEAL PARTY!
+                        </button>
+                        <button class="evolve-btn" onclick="executeMove('Gradient Descent')">
+                            ⚔️ BATTLE BEAST
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 8 QUANTUM GYM BADGES -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">🏆 8 QUANTUM GYM BADGES</div>
+                        <div style="font-family:var(--font-code); font-size:0.75rem; color:var(--poke-green);" id="badge-count">BADGES UNLOCKED: 8 / 8</div>
+                    </div>
+
+                    <div class="badge-grid">
+                        <div class="badge-item unlocked">
+                            <div class="badge-icon">🪨</div>
+                            <div class="badge-name">BOULDER</div>
+                        </div>
+                        <div class="badge-item unlocked">
+                            <div class="badge-icon">💧</div>
+                            <div class="badge-name">CASCADE</div>
+                        </div>
+                        <div class="badge-item unlocked">
+                            <div class="badge-icon">⚡</div>
+                            <div class="badge-name">THUNDER</div>
+                        </div>
+                        <div class="badge-item unlocked">
+                            <div class="badge-icon">🌿</div>
+                            <div class="badge-name">RAINBOW</div>
+                        </div>
+                        <div class="badge-item unlocked">
+                            <div class="badge-icon">🟣</div>
+                            <div class="badge-name">SOUL</div>
+                        </div>
+                        <div class="badge-item unlocked">
+                            <div class="badge-icon">🟡</div>
+                            <div class="badge-name">MARSH</div>
+                        </div>
+                        <div class="badge-item unlocked">
+                            <div class="badge-icon">🔥</div>
+                            <div class="badge-name">VOLCANO</div>
+                        </div>
+                        <div class="badge-item unlocked">
+                            <div class="badge-icon">🌊</div>
+                            <div class="badge-name">EARTH</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: POKÉMART & REWARD TERMINAL -->
+            <div>
+                <!-- POKÉMON MART ITEM SHOP -->
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <div class="card-header">
+                        <div class="card-title">🏬 POKÉMART HYPER-PARAMETER SHOP</div>
+                    </div>
+
+                    <div class="shop-grid">
+                        <div class="shop-item" onclick="buyItem('Hyper Potion')">
+                            <div class="shop-item-title">💊 HYPER POTION</div>
+                            <div class="shop-item-desc">Restores 100% Model HP & clears loss spike.</div>
+                        </div>
+
+                        <div class="shop-item" onclick="buyItem('PP Up')">
+                            <div class="shop-item-title">⚡ PP UP (+128K)</div>
+                            <div class="shop-item-desc">Expands LLM Context Window to 128K tokens.</div>
+                        </div>
+
+                        <div class="shop-item" onclick="buyItem('Rare Candy')">
+                            <div class="shop-item-title">🍬 RARE CANDY</div>
+                            <div class="shop-item-desc">Instantly levels up selected Model (+1 Lv).</div>
+                        </div>
+
+                        <div class="shop-item" onclick="buyItem('Master Ball')">
+                            <div class="shop-item-title">🔮 MASTER BALL</div>
+                            <div class="shop-item-desc">100% Catches Zero-Day Exploits & Parameters!</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TERMINAL REWARD LOG -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">📜 NURSE JOY REWARD LOG</div>
+                    </div>
+
+                    <div class="terminal-box" id="term-log">Welcome to the RL Pokémon Health Center & Gym Arena v3.0!
+
+Nurse Joy: "All 8 Quantum Gym Badges are verified and unlocked!"
+
+Click [Pokémart Items] to buy Rare Candies, PP Ups, or Master Balls!
+Press [HEAL!] to trigger Pokecenter chime.
+Press [EVOLVE!] to trigger Agent Evolution.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- THREE.JS 3D POKEBALL MACHINE & WEB AUDIO SYNTH -->
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playPokecenterChime() {
+            const notes = [
+                { f: 659.25, t: 0.00, d: 0.18 },
+                { f: 830.61, t: 0.18, d: 0.18 },
+                { f: 1318.51, t: 0.36, d: 0.22 },
+                { f: 987.77, t: 0.58, d: 0.40 }
+            ];
+
+            notes.forEach(n => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(n.f, audioCtx.currentTime + n.t);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime + n.t);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + n.t + n.d);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(audioCtx.currentTime + n.t);
+                osc.stop(audioCtx.currentTime + n.t + n.d);
+            });
+        }
+
+        function playBuyTone() {
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1046.50, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.15);
+            } catch(e){}
+        }
+
+        // THREE.JS 3D Pokeball Machine Simulation
+        const canvas = document.getElementById('healing-canvas');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(50, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+
+        renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+
+        const pokeballs = [];
+        const ballColors = [0xff3355, 0xff9900, 0xa855f7, 0x00f3ff, 0ff0055, 0x00ff88];
+
+        for(let i=0; i<6; i++) {
+            const group = new THREE.Group();
+
+            const topGeo = new THREE.SphereGeometry(0.8, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+            const topMat = new THREE.MeshPhongMaterial({ color: ballColors[i], shininess: 80 });
+            const topMesh = new THREE.Mesh(topGeo, topMat);
+            group.add(topMesh);
+
+            const botGeo = new THREE.SphereGeometry(0.8, 32, 16, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
+            const botMat = new THREE.MeshPhongMaterial({ color: 0xffffff, shininess: 80 });
+            const botMesh = new THREE.Mesh(botGeo, botMat);
+            group.add(botMesh);
+
+            const btnGeo = new THREE.CylinderGeometry(0.2, 0.2, 0.1, 32);
+            const btnMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const btnMesh = new THREE.Mesh(btnGeo, btnMat);
+            btnMesh.rotation.x = Math.PI / 2;
+            btnMesh.position.z = 0.75;
+            group.add(btnMesh);
+
+            const row = Math.floor(i / 3);
+            const col = i % 3;
+            group.position.set((col - 1) * 2.2, (1 - row) * 1.8, 0);
+
+            scene.add(group);
+            pokeballs.push(group);
+        }
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambientLight);
+
+        const pointLight = new THREE.PointLight(0x00f3ff, 1.5, 50);
+        pointLight.position.set(0, 5, 5);
+        scene.add(pointLight);
+
+        camera.position.z = 7;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            pokeballs.forEach((ball, idx) => {
+                ball.rotation.y += 0.01 + idx * 0.002;
+            });
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // POKÉMART BUY ACTION
+        function buyItem(item) {
+            playBuyTone();
+            const term = document.getElementById('term-log');
+            term.innerText += `\n\n[POKÉMART] Purchased ${item}!\n`;
+            if(item === 'Rare Candy') {
+                term.innerText += `> Applied Rare Candy to PIKA-QUBIT! Leveled up to Lv. 100!\n`;
+                document.getElementById('lvl-1').innerText = 'Lv. 100 (MAX)';
+            } else if(item === 'PP Up') {
+                term.innerText += `> Expanded LLM Context Window to 128K Tokens!\n`;
+            } else if(item === 'Master Ball') {
+                term.innerText += `> Caught Zero-Day Exploit with 100% Guaranteed Fidelity!\n`;
+            } else {
+                term.innerText += `> Restored 100% Model HP & Zero Loss!\n`;
+            }
+            term.scrollTop = term.scrollHeight;
+        }
+
+        // ASYNC HEALING ACTION VIA PYTHON BACKEND
+        async function triggerPokeCenterHeal() {
+            playPokecenterChime();
+            const term = document.getElementById('term-log');
+            document.getElementById('stat-hub').innerText = "STATUS: CONNECTING TO PYTHON...";
+            
+            try {
+                const res = await fetch("http://localhost:8080/heal", { method: "POST" });
+                const data = await res.json();
+                
+                term.innerText += `\n\n[PYTHON BACKEND] Telemetry Connected.\n`;
+                data.logs.forEach(log => {
+                    term.innerText += `${log}\n`;
+                });
+                term.scrollTop = term.scrollHeight;
+                
+                document.getElementById('stat-hub').innerText = "STATUS: ALL AGENTS RESTORED (PYTHON)";
+                
+                data.agents.forEach((agent, i) => {
+                    const bar = document.getElementById(`hp-${i+1}`);
+                    if (bar) {
+                        bar.style.width = '10%';
+                        setTimeout(() => { bar.style.width = `${(agent.hp / agent.maxHp) * 100}%`; }, 300);
+                    }
+                });
+                
+                pokeballs.forEach(ball => {
+                    ball.position.y += 0.4;
+                    setTimeout(() => { ball.position.y -= 0.4; }, 400);
+                });
+            } catch (e) {
+                term.innerText += `\n\n[ERROR] Could not reach Python backend at http://localhost:8080. Is telemetry_server.py running?\n`;
+                term.scrollTop = term.scrollHeight;
+                document.getElementById('stat-hub').innerText = "STATUS: PYTHON OFFLINE";
+            }
+        }
+
+        // ASYNC BATTLE MOVE VIA PYTHON BACKEND
+        async function executeMove(moveName) {
+            playBuyTone();
+            const term = document.getElementById('term-log');
+            document.getElementById('stat-hub').innerText = "STATUS: CALCULATING ADVANTAGE...";
+            
+            try {
+                const res = await fetch("http://localhost:8080/move", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ move: moveName })
+                });
+                const data = await res.json();
+                
+                term.innerText += `\n\n[PYTHON BACKEND] Executing Turn...\n`;
+                data.logs.forEach(log => {
+                    term.innerText += `${log}\n`;
+                });
+                term.scrollTop = term.scrollHeight;
+                
+                document.getElementById('stat-hub').innerText = `STATUS: LOSS-BEAST HP [${data.boss_hp}/100]`;
+                
+                pokeballs[0].rotation.x += Math.PI * 2;
+                pokeballs.forEach((ball, idx) => {
+                    if (idx > 0) ball.position.x += (Math.random() - 0.5) * 0.2;
+                });
+                
+            } catch (e) {
+                term.innerText += `\n\n[ERROR] Could not reach Python backend.\n`;
+                term.scrollTop = term.scrollHeight;
+            }
+        }
+    </script>
+</body>
+</html>
